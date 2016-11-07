@@ -1,4 +1,4 @@
-TITLE by YOUR_NAME_HERE
+ANÁLISE DA QUALIDADE DE VINHOS BRANCOS por LEONARDO MENDES
 ========================================================
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
@@ -14,13 +14,41 @@ library(ggplot2)
 
 ```{r echo=FALSE, Load_the_Data}
 # Load the Data
-
+wine_data <- read.csv("wineQualityWhites.csv")
+str(wine_data)
+summary(wine_data)
 ```
+
+O conjunto de dados consiste de 13 variáveis com quase 5.000 observações.
+
 
 # Univariate Plots Section
 ```{r echo=FALSE, Univariate_Plots}
 
+ggplot(aes(x=quality), data=wine_data) +  geom_bar() 
+
 ```
+
+A qualidade parece seguir uma distribuição normal com moda no valor 6 (mais de 2000 casos). Vamos agora verificar a distribuição das outras variáveis. 
+
+
+```{r echo=FALSE, Univariate_Plots2}
+ggplot(aes(x=fixed.acidity), data=wine_data) +  geom_histogram()
+
+ggplot(aes(x=fixed.acidity), data=wine_data) +  geom_histogram() + xlim(quantile(wine_data$fixed.acidity, 0.01), quantile(wine_data$fixed.acidity, 0.99))
+
+ggplot(aes(x=volatile.acidity), data=wine_data) +  geom_histogram() 
+
+ggplot(aes(x=volatile.acidity), data=wine_data) +  geom_histogram() + scale_x_log10()
+
+ggplot(aes(x=citric.acid), data=wine_data) +  geom_histogram()
+
+ggplot(aes(x=citric.acid), data=wine_data) +  geom_histogram() + xlim(quantile(wine_data$citric.acid, 0.01), quantile(wine_data$citric.acid, 0.99))
+
+
+```
+
+
 
 # Univariate Analysis
 
