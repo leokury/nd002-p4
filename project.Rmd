@@ -24,34 +24,107 @@ summary(wine_data)
 
 O conjunto de dados consiste de 13 variáveis com quase 5.000 observações.
 
+A variável X trata-se de um número sequencial para cada observação e por isso será removida das análises seguintes.
 
 # Univariate Plots Section
 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=quality), data=wine_data) +  geom_bar() 
+
+table(wine_data$quality)
+```
+
+A variável dependente qualidade parece seguir uma distribuição normal com moda no valor 6 (mais de 2000 casos). Vamos agora verificar a distribuição das outras variáveis. 
+
+Vamos investigar a distribuição das características:
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=15}
-library(reshape2)
+features <- subset(wine_data, select=-c(quality, X))
+ggplot(stack(features),aes(x = values)) + 
+      facet_wrap(~ind,scales = "free", ncol = 2) + 
+      geom_histogram()
+```
 
-d <- melt(wine_data)
-ggplot(d,aes(x = value)) + 
-    facet_wrap(~variable,scales = "free", ncol = 2) + 
-    geom_histogram()
+X segue uma distribuição uniforme com um valor sequencial para cada observação. Exceto alcohol, a distribuição das outras variáveis apresentam outliers à direita. 
 
+Vamos plotar boxplots com os valores normalizados das variáveis para verificar a existência de outliers.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10}
+scaled_features <- data.frame(lapply(features, function(x) (x-min(x))/(max(x)-min(x))))
+
+ggplot(stack(scaled_features), aes(y=values, x = ind)) + 
+    geom_boxplot()
+```
+
+Conforme nossas observações no histograma, verificamos muitos outliers nas variáveis.
+
+No gráfico de barras da quality, vimos alguns poucos vinhos (20) com qualidade bem baixa (3) e outros 5 vinhos com alta qualidade (9), seriam esses os responsáveis pelos outliers?
+
+Vamos verificar as características desses vinhos. Vinhos com baixa qualidade:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+features_lowquality = subset(wine_data, quality == 3, select=-c(quality, X))
+
+summary(features_lowquality)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=15}
+ggplot(stack(features_lowquality),aes(x = values)) + 
+      facet_wrap(~ind,scales = "free", ncol = 2) + 
+      geom_histogram()
 ```
 
 
+Vinhos com alta qualidade:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+features_highquality = subset(wine_data, quality == 9, select=-c(quality, X))
+
+summary(features_highquality)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=15}
+ggplot(stack(features_highquality),aes(x = values)) + 
+      facet_wrap(~ind,scales = "free", ncol = 2) + 
+      geom_histogram()
+```
+
+Aparentement esses vinhos não são os responsáveis pelos desvios. Na análise bivariada poderemos investigar mais a fundo essa questão.
+
+Para melhorar a visualização, vou plotar algumas variáveis removendo os outliers correspondendo aos 2% maiores valores.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-ggplot(aes(x=quality), data=wine_data) +  geom_bar() 
-
+for (feat in names(features)) {
+  plot <- ggplot(aes(x=wine_data[[feat]]), data=wine_data) +
+    geom_histogram() +
+    xlim(quantile(wine_data[[feat]], 0.01), quantile(wine_data[[feat]], 0.99)) + 
+    xlab(feat)
+  print(plot)
+}
 ```
 
-A qualidade parece seguir uma distribuição normal com moda no valor 6 (mais de 2000 casos). Vamos agora verificar a distribuição das outras variáveis. 
 
+A distribuição do residual.sugar é inclinada positivamente, o alcohol é bem irregular, todas as outras parecem ser normais. A distribuição chlorides ainda tem uma longa cauda à direita mesmo com a remoção dos extremos. Vamos aplicar uma transformação para melhorar a visualização.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=chlorides), data=wine_data) +  
+  geom_histogram() +
+  scale_x_log10()
+```
+
+Aplicando a transoformação log10, melhora a visualização da distribuição normal da variável.
 
 
 # Univariate Analysis
 
 ### What is the structure of your dataset?
+
+Existem 4898 vinhos com 12 variáveis relevantes ("fixed.acidity", "volatile.acidity", "citric.acid", "residual.sugar", "chlorides", "free.sulfur.dioxide", "total.sulfur.dioxide", "density", "pH", "sulphates", "alcohol", "quality"). 
+
+A variável "quality" indica a qualidade do vinho numa escala de 0 a 10. Quanto maior a variável melhor a qualidade do vinho. A maior parte dos vinhos estão entre a qualidade 4 a 8, com alguns poucos exemplares nos extremos 3 e 9.
+
+
 
 ### What is/are the main feature(s) of interest in your dataset?
 
@@ -67,6 +140,48 @@ A qualidade parece seguir uma distribuição normal com moda no valor 6 (mais de
 ```{r echo=FALSE, Bivariate_Plots}
 
 ```
+
+Vamos visualizar o histograma de algumas características com cores diferentes por qualidade. Como as quantidades das qualidades extremas são pequenas, foi dado zoom para mostrar quantidades até 100 observações.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=fixed.acidity, fill=factor(quality)), data=wine_data) +  
+  geom_histogram() +
+  coord_trans(limy = c(0,100))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=residual.sugar, fill=factor(quality)), data=wine_data) +  
+  geom_histogram() +
+  coord_trans(limy = c(0,100))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=chlorides, fill=factor(quality)), data=wine_data) +  
+  geom_histogram() +
+  coord_trans(limy = c(0,100))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=density, fill=factor(quality)), data=wine_data) +  
+  geom_histogram() +
+  coord_trans(limy = c(0,100))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=pH, fill=factor(quality)), data=wine_data) +  
+  geom_histogram() +
+  coord_trans(limy = c(0,100))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=sulphates, fill=factor(quality)), data=wine_data) +  
+  geom_histogram() +
+  coord_trans(limy = c(0,100))
+```
+
+Pelos gráficos é possível observar que não são os vinhos com qualidade nos extremos os responsáveis pelo outliers nas observações.
+
+
 
 # Bivariate Analysis
 
