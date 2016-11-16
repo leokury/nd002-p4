@@ -13,6 +13,7 @@ ANÁLISE DA QUALIDADE DE VINHOS BRANCOS por LEONARDO MENDES
 # You should set echo=FALSE for all code chunks in your file.
 
 library(ggplot2)
+library(psych)
 ```
 
 ```{r echo=FALSE, Load_the_Data}
@@ -22,9 +23,9 @@ str(wine_data)
 summary(wine_data)
 ```
 
-O conjunto de dados consiste de 13 variáveis com quase 5.000 observações.
+O conjunto de dados de vinhos brancos consiste de 13 variáveis com quase 5.000 observações.
 
-A variável X trata-se de um número sequencial para cada observação e por isso será removida das análises seguintes.
+A variável X trata-se de um simples número sequencial para cada observação que não agrega valor para a análise e por isso será removida das análises seguintes.
 
 # Univariate Plots Section
 
@@ -34,7 +35,7 @@ ggplot(aes(x=quality), data=wine_data) +  geom_bar()
 table(wine_data$quality)
 ```
 
-A variável dependente qualidade parece seguir uma distribuição normal com moda no valor 6 (mais de 2000 casos). Vamos agora verificar a distribuição das outras variáveis. 
+A variável qualidade parece seguir uma distribuição normal com moda no valor 6 (mais de 2000 casos). Vamos agora verificar a distribuição das outras variáveis. 
 
 Vamos investigar a distribuição das características:
 
@@ -45,7 +46,7 @@ ggplot(stack(features),aes(x = values)) +
       geom_histogram()
 ```
 
-X segue uma distribuição uniforme com um valor sequencial para cada observação. Exceto alcohol, a distribuição das outras variáveis apresentam outliers à direita. 
+Com exceção de alcohol, a distribuição das outras variáveis apresentam outliers à direita. 
 
 Vamos plotar boxplots com os valores normalizados das variáveis para verificar a existência de outliers.
 
@@ -58,12 +59,24 @@ ggplot(stack(scaled_features), aes(y=values, x = ind)) +
 
 Conforme nossas observações no histograma, verificamos muitos outliers nas variáveis.
 
-No gráfico de barras da quality, vimos alguns poucos vinhos (20) com qualidade bem baixa (3) e outros 5 vinhos com alta qualidade (9), seriam esses os responsáveis pelos outliers?
+No gráfico de barras da quality, vimos alguns poucos vinhos com qualidade baixa (3 e 4) e outros vinhos com alta qualidade (8 e 9), seriam esses os responsáveis pelos outliers?
+
+Primeiro vamos classificar os vinhos pela qualidade criando uma nova variável class no dataset.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+wine_data$class <- 'normal'
+wine_data$class[wine_data$quality < 5] <- 'baixa qualidade'
+wine_data$class[wine_data$quality > 7] <- 'alta qualidade'
+wine_data$class <- factor(wine_data$class, levels = c('baixa qualidade', 'normal', 'alta qualidade'))
+table(wine_data$class)
+```
+
+
 
 Vamos verificar as características desses vinhos. Vinhos com baixa qualidade:
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-features_lowquality = subset(wine_data, quality == 3, select=-c(quality, X))
+features_lowquality = subset(wine_data, class == 'baixa qualidade', select=-c(quality, X))
 
 summary(features_lowquality)
 ```
@@ -78,7 +91,7 @@ ggplot(stack(features_lowquality),aes(x = values)) +
 Vinhos com alta qualidade:
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-features_highquality = subset(wine_data, quality == 9, select=-c(quality, X))
+features_highquality = subset(wine_data, class == 'alta qualidade', select=-c(quality, X))
 
 summary(features_highquality)
 ```
@@ -108,12 +121,18 @@ for (feat in names(features)) {
 A distribuição do residual.sugar é inclinada positivamente, o alcohol é bem irregular, todas as outras parecem ser normais. A distribuição chlorides ainda tem uma longa cauda à direita mesmo com a remoção dos extremos. Vamos aplicar uma transformação para melhorar a visualização.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=residual.sugar), data=wine_data) +  
+  geom_histogram() +
+  scale_x_log10()
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x=chlorides), data=wine_data) +  
   geom_histogram() +
   scale_x_log10()
 ```
 
-Aplicando a transoformação log10, melhora a visualização da distribuição normal da variável.
+Aplicando a transoformação log10, melhora a visualização da distribuição das variáveis.
 
 
 # Univariate Analysis
@@ -124,22 +143,83 @@ Existem 4898 vinhos com 12 variáveis relevantes ("fixed.acidity", "volatile.aci
 
 A variável "quality" indica a qualidade do vinho numa escala de 0 a 10. Quanto maior a variável melhor a qualidade do vinho. A maior parte dos vinhos estão entre a qualidade 4 a 8, com alguns poucos exemplares nos extremos 3 e 9.
 
-
+As outras variáveis apresentam muitos outliers mas a maioria segue uma distribuição normal, com exceção do alcohol e do residual.sugar.
 
 ### What is/are the main feature(s) of interest in your dataset?
 
+A principal característica é a qualidade dos vinhos. Eu gostaria de investigar quais características são as melhores para fazer a predição da qualidade do vinho branco. Acredito que a combinação de várias características afetem a qualidade do vinho.
+
 ### What other features in the dataset do you think will help support your investigation into your feature(s) of interest?
+
+Considero que a qualidade seja resultante da combinação de diversas características.  Após realizar algumas pesquisas acredito que o teor alcoolico e a acidez são as características que podem mais contribuir para a qualidade dos vinhos.
+
+Referência: http://revistaadega.uol.com.br/artigo/o-alcool-e-a-acidez_6055.html
 
 ### Did you create any new variables from existing variables in the dataset?
 
+Foi criada a variável classificação baseada na qualidade do vinho.
+
+Qualidade | Classificação  
+----------|-------------
+3-4 | Baixa qualidade  
+6-7 | Normal  
+8-9 | Alta qualidade
+
 ### Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?
 
-
+A variável alcohol possui uma distribuição bastante irregular. Após aplicar a transofrmação log10, a variável residual.sugar apresentou-se bimodal e a chlorides normal.
 
 # Bivariate Plots Section
-```{r echo=FALSE, Bivariate_Plots}
-
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
+pairs.panels(subset(wine_data, select=-c(X, class)))
 ```
+A maior correlação da qualidade foi da variável alcohol com índice 0,44, considerada uma correlação moderada. Ao contrário do esperado, a acidez teve uma correlação fraca com a qualidade (0,11 e 0,19). A segunda maior correlação foi com densidade (-0,31). Interesante que a densidade também uma forte correlação com alcohol.
+
+
+Vamos verificar os gráficos de caixas com as variáveis que tiveram maior correlação, alcohol e density.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(y=alcohol, x = class), data=wine_data) +  
+  geom_boxplot()
+```
+
+```{r echo=FALSE}
+by(wine_data$alcohol, wine_data$class, summary)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(y=density, x = class), data=wine_data) +  
+  geom_boxplot() + 
+  ylim(0.985, 1.005)
+```
+
+```{r echo=FALSE}
+by(wine_data$density, wine_data$class, summary)
+```
+
+Com a variável alcohol é possível perceber a correlação entre as classes de qualidade (maior mediana para uma qualidade maior). Para a densidade a tendência é bem mais sútil mas é possível verificar que os vinhos de alta qualidade tem uma densidade menor.
+
+Vamos verificar a correlação entre alcohol e densidade utilizando um gráfico de dispersão.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=density, y = alcohol), data=wine_data) +  
+  geom_point() +
+ xlim(0.985, 1.005)
+```
+
+No gráfico podemos observar a forte correlação entre as variáveis. Quanto menor o nível alcoolico maior a densidade. 
+
+```{r echo=FALSE}
+summary(lm(formula = quality ~ alcohol, data = wine_data))
+summary(lm(formula = quality ~ density, data = subset(wine_data, density <= quantile(wine_data$density, 0.99))))
+```
+
+Verificando o coeficiente de determinação vemos que mesmo as variáveis com maior correlação não explicam muito a qualidade. O alcohol explica 19% enquanto que a densidade 10%. Isso reforça a ideia de que a qualidade é explicada por vários fatores em conjunto. 
+
+
+
+
 
 Vamos visualizar o histograma de algumas características com cores diferentes por qualidade. Como as quantidades das qualidades extremas são pequenas, foi dado zoom para mostrar quantidades até 100 observações.
 
