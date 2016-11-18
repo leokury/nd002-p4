@@ -217,57 +217,73 @@ summary(lm(formula = quality ~ density, data = subset(wine_data, density <= quan
 
 Verificando o coeficiente de determinação vemos que mesmo as variáveis com maior correlação não explicam muito a qualidade. O alcohol explica 19% enquanto que a densidade 10%. Isso reforça a ideia de que a qualidade é explicada por vários fatores em conjunto. 
 
-
-
-
-
-Vamos visualizar o histograma de algumas características com cores diferentes por qualidade. Como as quantidades das qualidades extremas são pequenas, foi dado zoom para mostrar quantidades até 100 observações.
+Um ponto que achei intrigante foi a correlação entre a acidez fixa e volátil ter sido tão baixa (-0,02). Esperava uma correlação bem maior. Vamos plotar o gráfico de dispersão das variáveis para verificar melhor.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=fixed.acidity, fill=factor(quality)), data=wine_data) +  
+ggplot(aes(x=fixed.acidity, y = volatile.acidity), data=wine_data) +  
+  geom_point(alpha=1/10, position='jitter') 
+```
+
+Pelo gráfico as variáveis parecem estar bem correlacionadas mas não seguem uma relação linear. 
+
+Mesmo o free.sulfur.dioxide e total.sulfur.dioxide apresentam uma correlação menor que o esperado (0,62). Esperava uma correlação muito forte entre as duas características. Vamos plotar o gráfico de dispersão entre as variáveis.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=free.sulfur.dioxide, y = total.sulfur.dioxide), data=wine_data) +  
+  geom_point(alpha=1/5, position='jitter') +
+  stat_smooth(method= 'lm') +
+  xlim(0,100) + 
+  ylim(0,300)
+```
+
+No gráfico é possível verificar uma relação linear mas com bastante ruído.
+
+
+Por último gostaria de verificar se os valores outliers das variáveis são relacionados com a qualidades extremas dos vinhos.
+
+
+Vamos visualizar o histograma de algumas características com cores diferentes por qualidade. Como as quantidades das qualidades extremas são pequenas, foi dado zoom para mostrar quantidades até 100 observações no segundo gráfico.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=fixed.acidity, fill=class), data=wine_data) +  
+  geom_histogram() 
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=fixed.acidity, fill=class), data=wine_data) +  
   geom_histogram() +
   coord_trans(limy = c(0,100))
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=residual.sugar, fill=factor(quality)), data=wine_data) +  
-  geom_histogram() +
-  coord_trans(limy = c(0,100))
+ggplot(aes(x=volatile.acidity, fill=class), data=wine_data) +  
+  geom_histogram() 
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=chlorides, fill=factor(quality)), data=wine_data) +  
+ggplot(aes(x=volatile.acidity, fill=class), data=wine_data) +  
   geom_histogram() +
   coord_trans(limy = c(0,100))
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=density, fill=factor(quality)), data=wine_data) +  
-  geom_histogram() +
-  coord_trans(limy = c(0,100))
-```
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=pH, fill=factor(quality)), data=wine_data) +  
-  geom_histogram() +
-  coord_trans(limy = c(0,100))
-```
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=sulphates, fill=factor(quality)), data=wine_data) +  
-  geom_histogram() +
-  coord_trans(limy = c(0,100))
-```
-
-Pelos gráficos é possível observar que não são os vinhos com qualidade nos extremos os responsáveis pelo outliers nas observações.
-
-
+Pelos gráficos, parece que não são os vinhos com qualidade nos extremos os responsáveis pelo outliers nas observações.
 
 # Bivariate Analysis
 
 ### Talk about some of the relationships you observed in this part of the investigation. How did the feature(s) of interest vary with other features in the dataset?
 
+A maior correlação da qualidade foi da variável alcohol com índice 0,44, considerada uma correlação moderada. Ao contrário do esperado, a acidez teve uma correlação fraca com a qualidade (0,11 e 0,19). A segunda maior correlação foi com densidade (-0,31). Interesante que a densidade também uma forte correlação com alcohol.
+
+Vinhos com maior considerados de maior qualidade tem um maior teor alcoolico. Já a densidade é inversamente proporcional a qualidade, quanto maior a densidade menor a qualidade.
+
+As duas variáveis com maior correlação com a qualidade, alcohol e density, explicam apenas 19% e 10% da qualidade. Isso reforça a ideia de que a qualidade é explicada por vários fatores em conjunto. 
+
+
+Os desvios encontrados nas variáveis que representam as características dos vinhos não são originados somente dos vinhos com qualidades extremas (alta ou baixa).
+
 ### Did you observe any interesting relationships between the other features (not the main feature(s) of interest)?
+
+Acidez física e volátil possuem uma baixa correlação linear mas pelo gráfico é possível perceber que há uma correlação não linear.
 
 ### What was the strongest relationship you found?
 
