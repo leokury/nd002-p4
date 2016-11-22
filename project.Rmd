@@ -14,6 +14,8 @@ ANÁLISE DA QUALIDADE DE VINHOS BRANCOS por LEONARDO MENDES
 
 library(ggplot2)
 library(psych)
+library(RColorBrewer)
+library(memisc)
 ```
 
 ```{r echo=FALSE, Load_the_Data}
@@ -204,7 +206,8 @@ Vamos verificar a correlação entre alcohol e densidade utilizando um gráfico 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x=density, y = alcohol), data=wine_data) +  
-  geom_point() +
+  geom_point(alpha=1/5, position='jitter') +
+  stat_smooth(method= 'lm') + 
  xlim(0.985, 1.005)
 ```
 
@@ -278,23 +281,78 @@ Vinhos com maior considerados de maior qualidade tem um maior teor alcoolico. J�
 
 As duas variáveis com maior correlação com a qualidade, alcohol e density, explicam apenas 19% e 10% da qualidade. Isso reforça a ideia de que a qualidade é explicada por vários fatores em conjunto. 
 
-
 Os desvios encontrados nas variáveis que representam as características dos vinhos não são originados somente dos vinhos com qualidades extremas (alta ou baixa).
 
 ### Did you observe any interesting relationships between the other features (not the main feature(s) of interest)?
 
+Densidade e alcool apresentam a maior correlação linear entre as variáveis com índice -0.78.
+
 Acidez física e volátil possuem uma baixa correlação linear mas pelo gráfico é possível perceber que há uma correlação não linear.
+
+Free.sulfur.dioxide e total.sulfur.dioxide apresentam uma correlação linear de 0,62. Pelo gráfico podemos observar que apesar de observar uma tendência linear, há muito ruído na relação.
 
 ### What was the strongest relationship you found?
 
-
+A variável com maior correlação linear com a qualidade foi alcohol com índice 0,44. É um tanto surpreendente pois não esperava que o teor alcoolico tivesse tanta influência na qualidade. Como é uma correlação positiva isso indica que quanto maior o teor alcool melhor a qualidade. Mesmo assim é uma correlação apenas moderada. Isso indica que a qualidade é melhor explicada por uma combinação de vários fatores.
 
 
 # Multivariate Plots Section
 
-```{r echo=FALSE, Multivariate_Plots}
-
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=alcohol, colour=class, fill=class), data=wine_data) +  
+  geom_density(alpha=0.05) 
 ```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=density, colour=class, fill=class), data=wine_data) +  
+  geom_density(alpha=0.05) +
+  xlim(min(wine_data$density), quantile(wine_data$density,0.995))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=chlorides, colour=class, fill=class), data=wine_data) +  
+  geom_density(alpha=0.05) +
+  xlim(min(wine_data$chlorides), quantile(wine_data$chlorides,0.975))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=density, y = alcohol, colour=class), data=wine_data) +  
+  geom_point(alpha=1/2, position='jitter') +
+  scale_colour_brewer(palette = "RdYlGn") + 
+  xlim(min(wine_data$density), quantile(wine_data$density,0.99)) +
+  ylim(min(wine_data$alcohol), quantile(wine_data$alcohol,0.99))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=fixed.acidity, y =volatile.acidity, colour=class), data=wine_data) +  
+  geom_point(alpha=1/2, position='jitter') +
+  scale_colour_brewer(palette = "Set2") + 
+  xlim(min(wine_data$fixed.acidity), quantile(wine_data$fixed.acidity,0.999)) +
+  ylim(min(wine_data$volatile.acidity), quantile(wine_data$volatile.acidity,0.99))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=free.sulfur.dioxide, y = total.sulfur.dioxide, colour=class), data=wine_data) +  
+  geom_point(alpha=1/2, position='jitter') +
+  scale_colour_brewer(palette = "Spectral") + 
+  xlim(0,100) + 
+  ylim(0,300)
+```
+
+```{r Building the Linear Model, echo=FALSE, warning=FALSE}
+
+dataset = features 
+dataset["quality"] = wine_data$quality
+
+m1 <- lm(quality ~ alcohol, data = dataset)
+m2 <- update(m1, ~ . + density)
+m3 <- update(m2, ~ . + chlorides)
+m4 <- update(m3, ~ . + volatile.acidity)
+m5 <- update(m4, ~ . + total.sulfur.dioxide)
+m6 <- lm(quality ~ ., data=dataset)
+mtable(m1, m2, m3, m4, m5, m6, sdigits = 3)
+```
+
 
 # Multivariate Analysis
 
