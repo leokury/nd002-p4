@@ -16,6 +16,7 @@ library(ggplot2)
 library(psych)
 library(RColorBrewer)
 library(memisc)
+library(gridExtra)
 ```
 
 ```{r echo=FALSE, Load_the_Data}
@@ -73,6 +74,9 @@ wine_data$class <- factor(wine_data$class, levels = c('baixa qualidade', 'normal
 table(wine_data$class)
 ```
 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=class), data=wine_data) +  geom_bar() 
+```
 
 
 Vamos verificar as características desses vinhos. Vinhos com baixa qualidade:
@@ -224,7 +228,9 @@ Um ponto que achei intrigante foi a correlação entre a acidez fixa e volátil 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x=fixed.acidity, y = volatile.acidity), data=wine_data) +  
-  geom_point(alpha=1/10, position='jitter') 
+  geom_point(alpha=1/10, position='jitter') +
+  xlim(quantile(wine_data$fixed.acidity,0.001), quantile(wine_data$fixed.acidity,0.999)) + 
+  ylim(quantile(wine_data$volatile.acidity,0.001), quantile(wine_data$volatile.acidity,0.999)) 
 ```
 
 Pelo gráfico as variáveis parecem estar bem correlacionadas mas não seguem uma relação linear. 
@@ -315,29 +321,66 @@ ggplot(aes(x=chlorides, colour=class, fill=class), data=wine_data) +
   xlim(min(wine_data$chlorides), quantile(wine_data$chlorides,0.975))
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=density, y = alcohol, colour=class), data=wine_data) +  
-  geom_point(alpha=1/2, position='jitter') +
-  scale_colour_brewer(palette = "RdYlGn") + 
-  xlim(min(wine_data$density), quantile(wine_data$density,0.99)) +
-  ylim(min(wine_data$alcohol), quantile(wine_data$alcohol,0.99))
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
+ggplot(aes(x=density, y = alcohol), data=wine_data) +  
+  coord_cartesian(
+    xlim=c(quantile(wine_data$density, 0.01), quantile(wine_data$density, 0.99)), 
+    ylim=c(quantile(wine_data$alcohol, 0.01), quantile(wine_data$alcohol, 0.99))
+    ) + 
+  geom_jitter(alpha=1/2, aes(size=class, color=class)) +
+  geom_vline(xintercept = mean(wine_data$density), linetype='longdash', color='blue', alpha=.5) +
+  geom_hline(yintercept = mean(wine_data$alcohol), linetype='longdash', color='blue', alpha=.5)
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+As retas em azul no gráfico representam a média da variável.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10}
+ggplot(aes(x=density, y = alcohol), data=wine_data) +  
+  geom_point(alpha=1/5, position='jitter') +
+  xlim(0.985, 1.005) + 
+  facet_wrap(~class)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
 ggplot(aes(x=fixed.acidity, y =volatile.acidity, colour=class), data=wine_data) +  
-  geom_point(alpha=1/2, position='jitter') +
-  scale_colour_brewer(palette = "Set2") + 
-  xlim(min(wine_data$fixed.acidity), quantile(wine_data$fixed.acidity,0.999)) +
-  ylim(min(wine_data$volatile.acidity), quantile(wine_data$volatile.acidity,0.99))
+  coord_cartesian(
+    xlim=c(quantile(wine_data$fixed.acidity, 0.01), quantile(wine_data$fixed.acidity, 0.99)), 
+    ylim=c(quantile(wine_data$volatile.acidity, 0.01), quantile(wine_data$volatile.acidity, 0.99))
+    ) + 
+  geom_jitter(alpha=1/2, aes(size=class, color=class)) +
+  geom_vline(xintercept = mean(wine_data$fixed.acidity), linetype='longdash', color='blue', alpha=.5) +
+  geom_hline(yintercept = mean(wine_data$volatile.acidity), linetype='longdash', color='blue', alpha=.5)
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=free.sulfur.dioxide, y = total.sulfur.dioxide, colour=class), data=wine_data) +  
-  geom_point(alpha=1/2, position='jitter') +
-  scale_colour_brewer(palette = "Spectral") + 
-  xlim(0,100) + 
-  ylim(0,300)
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10}
+ggplot(aes(x=fixed.acidity, y = volatile.acidity), data=wine_data) +  
+  geom_point(alpha=1/10, position='jitter') +
+  xlim(quantile(wine_data$fixed.acidity,0.001), quantile(wine_data$fixed.acidity,0.999)) + 
+  ylim(quantile(wine_data$volatile.acidity,0.001), quantile(wine_data$volatile.acidity,0.999)) +
+  facet_wrap(~class)
 ```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
+ggplot(aes(x=free.sulfur.dioxide, y = total.sulfur.dioxide, colour=class), data=wine_data) +  
+   coord_cartesian(
+    xlim=c(quantile(wine_data$free.sulfur.dioxide, 0.01), quantile(wine_data$free.sulfur.dioxide, 0.99)), 
+    ylim=c(quantile(wine_data$total.sulfur.dioxide, 0.01), quantile(wine_data$total.sulfur.dioxide, 0.99))
+    ) + 
+  geom_jitter(alpha=1/2, aes(size=class, color=class)) +
+  geom_vline(xintercept = mean(wine_data$free.sulfur.dioxide), linetype='longdash', color='blue', alpha=.5) +
+  geom_hline(yintercept = mean(wine_data$total.sulfur.dioxide), linetype='longdash', color='blue', alpha=.5)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10}
+ggplot(aes(x=free.sulfur.dioxide, y = total.sulfur.dioxide), data=wine_data) +  
+  geom_point(alpha=1/5, position='jitter') +
+  xlim(0,100) + 
+  ylim(0,300) + 
+  facet_wrap(~class)
+```
+
 
 ```{r Building the Linear Model, echo=FALSE, warning=FALSE}
 
@@ -358,9 +401,22 @@ mtable(m1, m2, m3, m4, m5, m6, sdigits = 3)
 
 ### Talk about some of the relationships you observed in this part of the investigation. Were there features that strengthened each other in terms of looking at your feature(s) of interest?
 
+Os vinhos de melhor qualidade encontram-se no quadrante superior esquerdo do gráfico alcohol x density. Isso confirma a observação de que quanto maior o teor alcoolico e menor a densidade, melhor o vinho. Poŕem mesmo assim ainda é possível observar bastante ruído com bastante vinhos de baixa qualidade no mesmo quadrante superior esquerdo e também vinhos de alta qualidade no quadrante oposto (inferior direito).
+
+Em relação ao gráfico volatile.acidity x fixed.acidity é possível observar que os vinhos de alta e também de baixa qualidade tendem a afastarem-se do centro das médias. Ficando o centro populado em sua maioria pelos vinhos normais.
+
+No gráfico total.sulfur.dioxide x free.sulfur.dioxido observei que no quadrante inferior direito há apenas um vinho de baixa qualidade e quantidades similares distribuídas pelo outros quadrantes. 
+
+
 ### Were there any interesting or surprising interactions between features?
 
+Achei interessante o fato de vinhos com maior teor alcoolico tenderem a ter uma maior qualidade. 
+
+Também fiquei surpreso com a correlação não linear entre a volatile.acidity e fixed.acidity, com os vinhos de alta e baixa qualidade tendendo a ficar fora do centro.
+
 ### OPTIONAL: Did you create any models with your dataset? Discuss the strengths and limitations of your model.
+
+Foi criado um modelo linear e analisada a influência das variáveis na descrição da qualidade dos vinhos. O modelo não conseguiu atingir uma boa descrição da qualidade, mesmo incluindo todas as variàveis disponíveis apenas 28% da qualidade é descrita. Isso leva a uma conclusão que é necessário um modelo mais complexo do que um simples modelo linear. Como visto por exemplo entre as variáveis volatile.acidity e fixed.acidity parece exisitir uma correlação não-linear forte. Outros tipos de modelos poderiam ser explorados.
 
 ------
 
@@ -369,25 +425,63 @@ mtable(m1, m2, m3, m4, m5, m6, sdigits = 3)
 ### Plot One
 ```{r echo=FALSE, Plot_One}
 
+g1 <- ggplot(aes(x=quality), data=wine_data) +  
+          geom_bar() +
+          xlab('Qualidade') + 
+          ylab('Quantidade') 
+g2 <- ggplot(aes(x=class), data=wine_data) +  
+  geom_bar() + 
+  xlab('Classes de qualidade') + 
+  ylab('Quantidade') 
+
+grid.arrange(g1, g2, ncol=2, top='Quantidade de vinhos por qualidade')
 ```
+
 
 ### Description One
 
+A distribuição de vinhos por qualidade parece ser normal com moda no valor 6 com mais de 2.000 vinhos. Para uma melhor organização os vinhos foram agrupados em 3 classificações: Baixa Qualidade (3 e 4), Normal (5 a 7) e Alta Qualidade (8 e 9). As classes baixa e alta qualidade tem quantidades semelhantes.
 
 ### Plot Two
 ```{r echo=FALSE, Plot_Two}
 
+g1 <- ggplot(aes(y=alcohol, x = class), data=wine_data) +  
+  geom_boxplot() +
+  xlab('Qualidade') +
+  ylab('Teor Alcoolico') + 
+  ggtitle('Boxplot de alcool pela qualidade')
+g2 <- ggplot(aes(y=density, x = class), data=wine_data) +  
+  geom_boxplot() + 
+  xlab('Qualidade') +
+  ylab('Densidade') + 
+  ggtitle('Boxplot de densidade pela qualidade')
+
+grid.arrange(g1, g2, ncol=2)
 ```
 
 ### Description Two
 
+As duas variáveis que tiveram mais correlação linear com a qualidade foram o alcool e a densidade. Pelos boxplots é possível observar que quanto maior o teor alcoolico maior a qualidade e que a densidade tem uma correlação inversa e mais sutil, quanto menor a densidade maior a qualidade.
 
 ### Plot Three
-```{r echo=FALSE, Plot_Three}
-
+```{r echo=FALSE, Plot_Three, fig.width=10, fig.height=10}
+ggplot(aes(x=density, y = alcohol), data=wine_data) +  
+  coord_cartesian(
+    xlim=c(quantile(wine_data$density, 0.01), quantile(wine_data$density, 0.99)), 
+    ylim=c(quantile(wine_data$alcohol, 0.01), quantile(wine_data$alcohol, 0.99))
+    ) + 
+  geom_jitter(alpha=1/2, aes(size=class, color=class)) +
+  geom_vline(xintercept = mean(wine_data$density), linetype='longdash', color='blue', alpha=.5) +
+  geom_hline(yintercept = mean(wine_data$alcohol), linetype='longdash', color='blue', alpha=.5) +
+  xlab('Densidade') +
+  ylab('Teor Alcoolico') + 
+  ggtitle('Dispersão entre densidade e teor alcoolico por qualidade dos vinhos') +
+  labs(color = "New Legend Title") 
 ```
 
 ### Description Three
+
+No gráfico de dispersão de densidade e alcool por qualidade é possível observar que a maior parte dos vinhos de alta qualidade encontram-se no quadrante superior esquerdo, ou seja, com teor alcoolico acima e densidade abaixo da média da amostra. 
 
 ------
 
