@@ -14,7 +14,6 @@ ANÁLISE DA QUALIDADE DE VINHOS BRANCOS por LEONARDO MENDES
 
 library(ggplot2)
 library(psych)
-library(RColorBrewer)
 library(memisc)
 library(gridExtra)
 ```
@@ -464,7 +463,7 @@ grid.arrange(g1, g2, ncol=2)
 As duas variáveis que tiveram mais correlação linear com a qualidade foram o alcool e a densidade. Pelos boxplots é possível observar que quanto maior o teor alcoolico maior a qualidade e que a densidade tem uma correlação inversa e mais sutil, quanto menor a densidade maior a qualidade.
 
 ### Plot Three
-```{r echo=FALSE, Plot_Three, fig.width=10, fig.height=10}
+```{r echo=FALSE, warning=FALSE, fig.width=10, fig.height=10}
 ggplot(aes(x=density, y = alcohol), data=wine_data) +  
   coord_cartesian(
     xlim=c(quantile(wine_data$density, 0.01), quantile(wine_data$density, 0.99)), 
@@ -475,8 +474,7 @@ ggplot(aes(x=density, y = alcohol), data=wine_data) +
   geom_hline(yintercept = mean(wine_data$alcohol), linetype='longdash', color='blue', alpha=.5) +
   xlab('Densidade') +
   ylab('Teor Alcoolico') + 
-  ggtitle('Dispersão entre densidade e teor alcoolico por qualidade dos vinhos') +
-  labs(color = "New Legend Title") 
+  ggtitle('Dispersão entre densidade e teor alcoolico por qualidade dos vinhos') 
 ```
 
 ### Description Three
@@ -486,3 +484,16 @@ No gráfico de dispersão de densidade e alcool por qualidade é possível obser
 ------
 
 # Reflection
+
+O conjunto de dados de vinhos brancos contém quase 5.000 observações com 13 variáveis. A análise iniciou com o entendimento das variáveis do dataset, seus valores e tipos de dados. Depois foram analisadas a distribuição das variáveis individualmente, iniciando pela variável de interesse da qualidade dos vinhos. Então foram analisada a qualidade dos vinhos com as variáveis mais correlacionadas e criado um modelo linear para predição da qualidade dos vinhos.
+
+A maior correlação linear da qualidade é com o teor alcoolico e a densidade. Fiquei surpreso com o alcool sendo a variável com maior correlação, não esperava que o teor alcoolico tivesse tanta influencia na qualidade, e que quanto maior o teor alcoolico maior a qualidade. Apesar disso, a qualidade parece ser bem complexa e resultante da combinação de muitas variáveis. O alcool, sendo a variável com maior correlação explica somente 19% e todas as variáveis juntas só conseguiram atingir 28%. 
+
+Como foi utilizado um modelo linear, esse pode ser um dos motivos da baixa expectativa de predição. Entre algumas variáveis, como por exemplo entre a acidez volátil e fixa foi possível observar uma correlação não-linear entre as variáveis, então outros modelos não-linear poderiam ser utilizados para prever a qualidade com maior precisão.
+
+Algumas limitações da análise são: a origem e data de coleta dos dados que parecem não ser atuais; o intervalo de classificação da qualidade dos vinhos é muito estreito, variando apenas de 3 a 9, geralmente as classificações de bebidas vão de 0 a 100; foram disponibilizadas apenas características numéricas dos vinhos, características categóricas, como por exemplo, cor, aroma e sabor, podem ser muito úteis para classificar a qualidade dos vinhos. 
+
+Outros datasets que superem algumas das limitações indicadas acima podem resultar numa melhor predição da qualidade. Um exemplo seria o VinhoVirtual (http://www.vinhovirtual.com.br/), um conjunto de dados com classificações atuais em uma escala de 0 a 100, características numéricas e também categóricas. Uma preocuação com esse dataset seria que, por ser uma base alimentada pelos usuários da comunidade, muitos dados estão ausentes e pode haver também dados discrepantes informados pelos usuários, então um tratamento mais detalhado dos dados é necessário.
+
+
+
