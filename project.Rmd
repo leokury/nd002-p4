@@ -32,7 +32,7 @@ A variável X trata-se de um simples número sequencial para cada observação q
 # Univariate Plots Section
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=quality), data=wine_data) +  geom_bar() 
+ggplot(aes(x = quality), data = wine_data) +  geom_bar() 
 
 table(wine_data$quality)
 ```
@@ -42,10 +42,11 @@ A variável qualidade parece seguir uma distribuição normal com moda no valor 
 Vamos investigar a distribuição das características:
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=15}
-features <- subset(wine_data, select=-c(quality, X))
-ggplot(stack(features),aes(x = values)) + 
-      facet_wrap(~ind,scales = "free", ncol = 2) + 
-      geom_histogram()
+features <- subset(wine_data, select = -c(quality, X))
+#um histograma para cada caracteristica
+ggplot(stack(features), aes(x = values)) + 
+  facet_wrap(~ind, scales = "free", ncol = 2) + 
+  geom_histogram()
 ```
 
 Com exceção de alcohol, a distribuição das outras variáveis apresentam outliers à direita. 
@@ -53,9 +54,11 @@ Com exceção de alcohol, a distribuição das outras variáveis apresentam outl
 Vamos plotar boxplots com os valores normalizados das variáveis para verificar a existência de outliers.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10}
-scaled_features <- data.frame(lapply(features, function(x) (x-min(x))/(max(x)-min(x))))
+#coloca todas as caracteristicas entre 0 e 1 para comparar os boxplot
+scaled_features <- data.frame(lapply(features, 
+                                     function(x) (x-min(x))/(max(x)-min(x))))
 
-ggplot(stack(scaled_features), aes(y=values, x = ind)) + 
+ggplot(stack(scaled_features), aes(y = values, x = ind)) + 
     geom_boxplot()
 ```
 
@@ -66,45 +69,57 @@ No gráfico de barras da quality, vimos alguns poucos vinhos com qualidade baixa
 Primeiro vamos classificar os vinhos pela qualidade criando uma nova variável class no dataset.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+#nova variável class com a qualidade agrupada
 wine_data$class <- 'normal'
 wine_data$class[wine_data$quality < 5] <- 'baixa qualidade'
 wine_data$class[wine_data$quality > 7] <- 'alta qualidade'
-wine_data$class <- factor(wine_data$class, levels = c('baixa qualidade', 'normal', 'alta qualidade'))
+wine_data$class <- factor(wine_data$class, 
+                          levels = c('baixa qualidade', 
+                                     'normal', 
+                                     'alta qualidade'))
 table(wine_data$class)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=class), data=wine_data) +  geom_bar() 
+ggplot(aes(x = class), data = wine_data) +  geom_bar() 
 ```
 
 
 Vamos verificar as características desses vinhos. Vinhos com baixa qualidade:
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-features_lowquality = subset(wine_data, class == 'baixa qualidade', select=-c(quality, X))
+#seleciona so os vinhos de baixa qualidade
+features_lowquality = subset(wine_data, 
+                             class == 'baixa qualidade', 
+                             select = -c(quality, X))
 
 summary(features_lowquality)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=15}
-ggplot(stack(features_lowquality),aes(x = values)) + 
-      facet_wrap(~ind,scales = "free", ncol = 2) + 
-      geom_histogram()
+#histograma de das caracteristicas considerando apenas o vinhos de baixa qualidade
+ggplot(stack(features_lowquality), aes(x = values)) + 
+  facet_wrap(~ind, scales = "free", ncol = 2) + 
+  geom_histogram()
 ```
 
 
 Vinhos com alta qualidade:
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-features_highquality = subset(wine_data, class == 'alta qualidade', select=-c(quality, X))
+#seleciona as caracteristicas dos vinhos de alta qualidade
+features_highquality = subset(wine_data, 
+                              class == 'alta qualidade', 
+                              select = -c(quality, X))
 
 summary(features_highquality)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=15}
-ggplot(stack(features_highquality),aes(x = values)) + 
-      facet_wrap(~ind,scales = "free", ncol = 2) + 
-      geom_histogram()
+#histograma das caracteristicas apenas dos vinhos de alta qualidade
+ggplot(stack(features_highquality), aes(x = values)) + 
+  facet_wrap(~ind,scales = "free", ncol = 2) + 
+  geom_histogram()
 ```
 
 Aparentement esses vinhos não são os responsáveis pelos desvios. Na análise bivariada poderemos investigar mais a fundo essa questão.
@@ -112,9 +127,9 @@ Aparentement esses vinhos não são os responsáveis pelos desvios. Na análise 
 Para melhorar a visualização, vou plotar algumas variáveis removendo os outliers correspondendo aos 2% maiores valores.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-
+#produz um histograma para cada caracteristica removendo os extremos (1% de cada lado)
 for (feat in names(features)) {
-  plot <- ggplot(aes(x=wine_data[[feat]]), data=wine_data) +
+  plot <- ggplot(aes(x = wine_data[[feat]]), data = wine_data) +
     geom_histogram() +
     xlim(quantile(wine_data[[feat]], 0.01), quantile(wine_data[[feat]], 0.99)) + 
     xlab(feat)
@@ -126,13 +141,13 @@ for (feat in names(features)) {
 A distribuição do residual.sugar é inclinada positivamente, o alcohol é bem irregular, todas as outras parecem ser normais. A distribuição chlorides ainda tem uma longa cauda à direita mesmo com a remoção dos extremos. Vamos aplicar uma transformação para melhorar a visualização.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=residual.sugar), data=wine_data) +  
+ggplot(aes(x = residual.sugar), data = wine_data) +  
   geom_histogram() +
   scale_x_log10()
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=chlorides), data=wine_data) +  
+ggplot(aes(x = chlorides), data = wine_data) +  
   geom_histogram() +
   scale_x_log10()
 ```
@@ -176,7 +191,7 @@ A variável alcohol possui uma distribuição bastante irregular. Após aplicar 
 
 # Bivariate Plots Section
 ```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
-pairs.panels(subset(wine_data, select=-c(X, class)))
+pairs.panels(subset(wine_data, select = -c(X, class)))
 ```
 A maior correlação da qualidade foi da variável alcohol com índice 0,44, considerada uma correlação moderada. Ao contrário do esperado, a acidez teve uma correlação fraca com a qualidade (0,11 e 0,19). A segunda maior correlação foi com densidade (-0,31). Interesante que a densidade também uma forte correlação com alcohol.
 
@@ -184,7 +199,7 @@ A maior correlação da qualidade foi da variável alcohol com índice 0,44, con
 Vamos verificar os gráficos de caixas com as variáveis que tiveram maior correlação, alcohol e density.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(y=alcohol, x = class), data=wine_data) +  
+ggplot(aes(y = alcohol, x = class), data = wine_data) +  
   geom_boxplot()
 ```
 
@@ -194,7 +209,7 @@ by(wine_data$alcohol, wine_data$class, summary)
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(y=density, x = class), data=wine_data) +  
+ggplot(aes(y = density, x = class), data = wine_data) +  
   geom_boxplot() + 
   ylim(0.985, 1.005)
 ```
@@ -208,17 +223,19 @@ Com a variável alcohol é possível perceber a correlação entre as classes de
 Vamos verificar a correlação entre alcohol e densidade utilizando um gráfico de dispersão.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=density, y = alcohol), data=wine_data) +  
-  geom_point(alpha=1/5, position='jitter') +
-  stat_smooth(method= 'lm') + 
- xlim(0.985, 1.005)
+ggplot(aes(x = density, y = alcohol), data = wine_data) +  
+  geom_point(alpha = 1/5, position = 'jitter') +
+  stat_smooth(method = 'lm') + 
+  xlim(0.985, 1.005)
 ```
 
 No gráfico podemos observar a forte correlação entre as variáveis. Quanto menor o nível alcoolico maior a densidade. 
 
 ```{r echo=FALSE}
 summary(lm(formula = quality ~ alcohol, data = wine_data))
-summary(lm(formula = quality ~ density, data = subset(wine_data, density <= quantile(wine_data$density, 0.99))))
+summary(lm(formula = quality ~ density, 
+           data = subset(wine_data, 
+                         density <= quantile(wine_data$density, 0.99))))
 ```
 
 Verificando o coeficiente de determinação vemos que mesmo as variáveis com maior correlação não explicam muito a qualidade. O alcohol explica 19% enquanto que a densidade 10%. Isso reforça a ideia de que a qualidade é explicada por vários fatores em conjunto. 
@@ -226,10 +243,12 @@ Verificando o coeficiente de determinação vemos que mesmo as variáveis com ma
 Um ponto que achei intrigante foi a correlação entre a acidez fixa e volátil ter sido tão baixa (-0,02). Esperava uma correlação bem maior. Vamos plotar o gráfico de dispersão das variáveis para verificar melhor.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=fixed.acidity, y = volatile.acidity), data=wine_data) +  
-  geom_point(alpha=1/10, position='jitter') +
-  xlim(quantile(wine_data$fixed.acidity,0.001), quantile(wine_data$fixed.acidity,0.999)) + 
-  ylim(quantile(wine_data$volatile.acidity,0.001), quantile(wine_data$volatile.acidity,0.999)) 
+ggplot(aes(x = fixed.acidity, y = volatile.acidity), data = wine_data) +  
+  geom_point(alpha = 1/10, position = 'jitter') +
+  xlim(quantile(wine_data$fixed.acidity, 0.001),
+       quantile(wine_data$fixed.acidity, 0.999)) + 
+  ylim(quantile(wine_data$volatile.acidity, 0.001),
+       quantile(wine_data$volatile.acidity, 0.999)) 
 ```
 
 Pelo gráfico as variáveis parecem estar bem correlacionadas mas não seguem uma relação linear. 
@@ -237,9 +256,10 @@ Pelo gráfico as variáveis parecem estar bem correlacionadas mas não seguem um
 Mesmo o free.sulfur.dioxide e total.sulfur.dioxide apresentam uma correlação menor que o esperado (0,62). Esperava uma correlação muito forte entre as duas características. Vamos plotar o gráfico de dispersão entre as variáveis.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=free.sulfur.dioxide, y = total.sulfur.dioxide), data=wine_data) +  
-  geom_point(alpha=1/5, position='jitter') +
-  stat_smooth(method= 'lm') +
+ggplot(aes(x = free.sulfur.dioxide, y = total.sulfur.dioxide), 
+       data = wine_data) +  
+  geom_point(alpha = 1/5, position = 'jitter') +
+  stat_smooth(method = 'lm') +
   xlim(0,100) + 
   ylim(0,300)
 ```
@@ -253,23 +273,24 @@ Por último gostaria de verificar se os valores outliers das variáveis são rel
 Vamos visualizar o histograma de algumas características com cores diferentes por qualidade. Como as quantidades das qualidades extremas são pequenas, foi dado zoom para mostrar quantidades até 100 observações no segundo gráfico.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=fixed.acidity, fill=class), data=wine_data) +  
+#histogramas de algumas caracteriscas com destaque de cor por qualidade
+ggplot(aes(x = fixed.acidity, fill = class), data = wine_data) +  
   geom_histogram() 
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=fixed.acidity, fill=class), data=wine_data) +  
+ggplot(aes(x = fixed.acidity, fill = class), data = wine_data) +  
   geom_histogram() +
   coord_trans(limy = c(0,100))
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=volatile.acidity, fill=class), data=wine_data) +  
+ggplot(aes(x = volatile.acidity, fill = class), data = wine_data) +  
   geom_histogram() 
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=volatile.acidity, fill=class), data=wine_data) +  
+ggplot(aes(x = volatile.acidity, fill = class), data = wine_data) +  
   geom_histogram() +
   coord_trans(limy = c(0,100))
 ```
@@ -303,83 +324,115 @@ A variável com maior correlação linear com a qualidade foi alcohol com índic
 
 # Multivariate Plots Section
 
+Para uma melhor visualização, vamos investigar os diagramas de densidade das variáveis alcool, densidade e cloretos. 
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=alcohol, colour=class, fill=class), data=wine_data) +  
-  geom_density(alpha=0.05) 
+ggplot(aes(x = alcohol, colour = class, fill = class), data = wine_data) +  
+  geom_density(alpha = 0.05) 
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=density, colour=class, fill=class), data=wine_data) +  
-  geom_density(alpha=0.05) +
+ggplot(aes(x = density, colour = class, fill = class), data = wine_data) +  
+  geom_density(alpha = 0.05) +
   xlim(min(wine_data$density), quantile(wine_data$density,0.995))
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x=chlorides, colour=class, fill=class), data=wine_data) +  
-  geom_density(alpha=0.05) +
-  xlim(min(wine_data$chlorides), quantile(wine_data$chlorides,0.975))
+ggplot(aes(x = chlorides, colour = class, fill = class), data = wine_data) +  
+  geom_density(alpha = 0.05) +
+  xlim(min(wine_data$chlorides), quantile(wine_data$chlorides, 0.975))
 ```
 
+Nos diagramas de alcool e densidade é possível observar claramente a distinção da densidades dos vinhos de alta qualidade para os vinhos normal e baixa qualidade. Como o esperado, devido a baixa correlação, no diagrama dos cloretos a distinção já não é tão clara.
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
-ggplot(aes(x=density, y = alcohol), data=wine_data) +  
+Agora vamos ver se é possível observara em um gráfico de dispersão de alcool por densidade verificar uma maior concentração dos vinhos de alta qualidade em alguma area do gráfico. Vamos fazer o mesmo para acidez volatil e fixa e depois as variáveis que representam o dióxido de enxofre.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=8}
+ggplot(aes(x = density, y = alcohol), data = wine_data) +  
   coord_cartesian(
-    xlim=c(quantile(wine_data$density, 0.01), quantile(wine_data$density, 0.99)), 
-    ylim=c(quantile(wine_data$alcohol, 0.01), quantile(wine_data$alcohol, 0.99))
-    ) + 
-  geom_jitter(alpha=1/2, aes(size=class, color=class)) +
-  geom_vline(xintercept = mean(wine_data$density), linetype='longdash', color='blue', alpha=.5) +
-  geom_hline(yintercept = mean(wine_data$alcohol), linetype='longdash', color='blue', alpha=.5)
+    xlim = c(quantile(wine_data$density, 0.01), 
+             quantile(wine_data$density, 0.99)), 
+    ylim = c(quantile(wine_data$alcohol, 0.01), 
+             quantile(wine_data$alcohol, 0.99))) + 
+  geom_jitter(alpha = 1/2, aes(size = class, color = class)) +
+  geom_vline(xintercept = mean(wine_data$density), 
+             linetype = 'longdash', 
+             color = 'blue', 
+             alpha = 0.5) +
+  geom_hline(yintercept = mean(wine_data$alcohol), 
+             linetype = 'longdash', 
+             color = 'blue', 
+             alpha = 0.5)
 ```
 
 As retas em azul no gráfico representam a média da variável.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10}
-ggplot(aes(x=density, y = alcohol), data=wine_data) +  
-  geom_point(alpha=1/5, position='jitter') +
+ggplot(aes(x = density, y = alcohol), data = wine_data) +  
+  geom_point(alpha = 1/5, position = 'jitter') +
   xlim(0.985, 1.005) + 
   facet_wrap(~class)
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
-ggplot(aes(x=fixed.acidity, y =volatile.acidity, colour=class), data=wine_data) +  
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=8}
+ggplot(aes(x = fixed.acidity, y = volatile.acidity, colour = class), 
+       data = wine_data) +  
   coord_cartesian(
-    xlim=c(quantile(wine_data$fixed.acidity, 0.01), quantile(wine_data$fixed.acidity, 0.99)), 
-    ylim=c(quantile(wine_data$volatile.acidity, 0.01), quantile(wine_data$volatile.acidity, 0.99))
-    ) + 
-  geom_jitter(alpha=1/2, aes(size=class, color=class)) +
-  geom_vline(xintercept = mean(wine_data$fixed.acidity), linetype='longdash', color='blue', alpha=.5) +
-  geom_hline(yintercept = mean(wine_data$volatile.acidity), linetype='longdash', color='blue', alpha=.5)
+    xlim = c(quantile(wine_data$fixed.acidity, 0.01), 
+             quantile(wine_data$fixed.acidity, 0.99)), 
+    ylim = c(quantile(wine_data$volatile.acidity, 0.01),
+             quantile(wine_data$volatile.acidity, 0.99))) + 
+  geom_jitter(alpha = 1/2, aes(size = class, color = class)) +
+  geom_vline(xintercept = mean(wine_data$fixed.acidity), 
+             linetype = 'longdash', 
+             color = 'blue', 
+             alpha = 0.5) +
+  geom_hline(yintercept = mean(wine_data$volatile.acidity), 
+             linetype = 'longdash', 
+             color = 'blue', 
+             alpha = 0.5)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10}
-ggplot(aes(x=fixed.acidity, y = volatile.acidity), data=wine_data) +  
-  geom_point(alpha=1/10, position='jitter') +
-  xlim(quantile(wine_data$fixed.acidity,0.001), quantile(wine_data$fixed.acidity,0.999)) + 
-  ylim(quantile(wine_data$volatile.acidity,0.001), quantile(wine_data$volatile.acidity,0.999)) +
+ggplot(aes(x = fixed.acidity, y = volatile.acidity), data = wine_data) +  
+  geom_point(alpha = 1/10, position = 'jitter') +
+  xlim(quantile(wine_data$fixed.acidity, 0.001), 
+       quantile(wine_data$fixed.acidity, 0.999)) + 
+  ylim(quantile(wine_data$volatile.acidity, 0.001),
+       quantile(wine_data$volatile.acidity, 0.999)) +
   facet_wrap(~class)
 ```
 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
-ggplot(aes(x=free.sulfur.dioxide, y = total.sulfur.dioxide, colour=class), data=wine_data) +  
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=8}
+ggplot(aes(x = free.sulfur.dioxide, y = total.sulfur.dioxide, colour = class),
+       data = wine_data) +  
    coord_cartesian(
-    xlim=c(quantile(wine_data$free.sulfur.dioxide, 0.01), quantile(wine_data$free.sulfur.dioxide, 0.99)), 
-    ylim=c(quantile(wine_data$total.sulfur.dioxide, 0.01), quantile(wine_data$total.sulfur.dioxide, 0.99))
-    ) + 
-  geom_jitter(alpha=1/2, aes(size=class, color=class)) +
-  geom_vline(xintercept = mean(wine_data$free.sulfur.dioxide), linetype='longdash', color='blue', alpha=.5) +
-  geom_hline(yintercept = mean(wine_data$total.sulfur.dioxide), linetype='longdash', color='blue', alpha=.5)
+     xlim = c(quantile(wine_data$free.sulfur.dioxide, 0.01),
+              quantile(wine_data$free.sulfur.dioxide, 0.99)), 
+    ylim = c(quantile(wine_data$total.sulfur.dioxide, 0.01),
+             quantile(wine_data$total.sulfur.dioxide, 0.99))) + 
+  geom_jitter(alpha = 1/2, aes(size = class, color = class)) +
+  geom_vline(xintercept = mean(wine_data$free.sulfur.dioxide), 
+             linetype = 'longdash', color = 'blue', alpha = 0.5) +
+  geom_hline(yintercept = mean(wine_data$total.sulfur.dioxide), 
+             linetype = 'longdash', 
+             color = 'blue', 
+             alpha = 0.5)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10}
-ggplot(aes(x=free.sulfur.dioxide, y = total.sulfur.dioxide), data=wine_data) +  
-  geom_point(alpha=1/5, position='jitter') +
-  xlim(0,100) + 
-  ylim(0,300) + 
+ggplot(aes(x = free.sulfur.dioxide, y = total.sulfur.dioxide), 
+       data = wine_data) +  
+  geom_point(alpha = 1/5, position = 'jitter') +
+  xlim(0, 100) + 
+  ylim(0, 300) + 
   facet_wrap(~class)
 ```
 
+Pelos gráficos é possível observar que no gráfico de alcool por densidade os vinhos de alta qualidade tem uma maior concentração no quadrante com maior teor alcoolico e menor densidade. No gráfico das variáveis de acidez fixa e volátil os vinhos de alta e baixa qualidade parecem ter uma baixa incidência no centro. Já no gráfico de dióxido de enxofre não foi possível observar nenhuma distinção entre as classes de qualidade.
+
+Vamos agora construir um modelo linear com as características dos vinhos para avaliar a a predição da qualidade utilizando essas características.
 
 ```{r Building the Linear Model, echo=FALSE, warning=FALSE}
 
@@ -391,9 +444,11 @@ m2 <- update(m1, ~ . + density)
 m3 <- update(m2, ~ . + chlorides)
 m4 <- update(m3, ~ . + volatile.acidity)
 m5 <- update(m4, ~ . + total.sulfur.dioxide)
-m6 <- lm(quality ~ ., data=dataset)
+m6 <- lm(quality ~ ., data = dataset)
 mtable(m1, m2, m3, m4, m5, m6, sdigits = 3)
 ```
+
+Verificando a variável R^2, mesmo utilizando todas as características disponíveis apenas 28% da qualidade é descrita por essas variáveis.
 
 
 # Multivariate Analysis
@@ -423,17 +478,17 @@ Foi criado um modelo linear e analisada a influência das variáveis na descriç
 
 ### Plot One
 ```{r echo=FALSE, Plot_One}
+#histograma de qualidade e classificacao lado a lado
+g1 <- ggplot(aes(x = quality), data = wine_data) +  
+        geom_bar() +
+        xlab('Qualidade') + 
+        ylab('Quantidade') 
+g2 <- ggplot(aes(x = class), data = wine_data) +  
+        geom_bar() + 
+        xlab('Classes de qualidade') + 
+        ylab('Quantidade') 
 
-g1 <- ggplot(aes(x=quality), data=wine_data) +  
-          geom_bar() +
-          xlab('Qualidade') + 
-          ylab('Quantidade') 
-g2 <- ggplot(aes(x=class), data=wine_data) +  
-  geom_bar() + 
-  xlab('Classes de qualidade') + 
-  ylab('Quantidade') 
-
-grid.arrange(g1, g2, ncol=2, top='Quantidade de vinhos por qualidade')
+grid.arrange(g1, g2, ncol = 2, top = 'Quantidade de vinhos por qualidade')
 ```
 
 
@@ -443,19 +498,19 @@ A distribuição de vinhos por qualidade parece ser normal com moda no valor 6 c
 
 ### Plot Two
 ```{r echo=FALSE, Plot_Two}
+#boxplot de alcohol e densidade lado a lado
+g1 <- ggplot(aes(y = alcohol, x = class), data = wine_data) +  
+        geom_boxplot() +
+        xlab('Qualidade') +
+        ylab('Teor Alcoolico (%)') + 
+        ggtitle('Boxplot de alcool pela qualidade')
+g2 <- ggplot(aes(y = density, x = class), data = wine_data) +  
+        geom_boxplot() + 
+        xlab('Qualidade') +
+        ylab('Densidade (g/cm³)') + 
+        ggtitle('Boxplot de densidade pela qualidade')
 
-g1 <- ggplot(aes(y=alcohol, x = class), data=wine_data) +  
-  geom_boxplot() +
-  xlab('Qualidade') +
-  ylab('Teor Alcoolico') + 
-  ggtitle('Boxplot de alcool pela qualidade')
-g2 <- ggplot(aes(y=density, x = class), data=wine_data) +  
-  geom_boxplot() + 
-  xlab('Qualidade') +
-  ylab('Densidade') + 
-  ggtitle('Boxplot de densidade pela qualidade')
-
-grid.arrange(g1, g2, ncol=2)
+grid.arrange(g1, g2, ncol = 2)
 ```
 
 ### Description Two
@@ -463,17 +518,24 @@ grid.arrange(g1, g2, ncol=2)
 As duas variáveis que tiveram mais correlação linear com a qualidade foram o alcool e a densidade. Pelos boxplots é possível observar que quanto maior o teor alcoolico maior a qualidade e que a densidade tem uma correlação inversa e mais sutil, quanto menor a densidade maior a qualidade.
 
 ### Plot Three
-```{r echo=FALSE, warning=FALSE, fig.width=10, fig.height=10}
-ggplot(aes(x=density, y = alcohol), data=wine_data) +  
+```{r echo=FALSE, warning=FALSE, fig.width=10, fig.height=8}
+ggplot(aes(x = density, y = alcohol), data = wine_data) +  
   coord_cartesian(
-    xlim=c(quantile(wine_data$density, 0.01), quantile(wine_data$density, 0.99)), 
-    ylim=c(quantile(wine_data$alcohol, 0.01), quantile(wine_data$alcohol, 0.99))
-    ) + 
-  geom_jitter(alpha=1/2, aes(size=class, color=class)) +
-  geom_vline(xintercept = mean(wine_data$density), linetype='longdash', color='blue', alpha=.5) +
-  geom_hline(yintercept = mean(wine_data$alcohol), linetype='longdash', color='blue', alpha=.5) +
-  xlab('Densidade') +
-  ylab('Teor Alcoolico') + 
+    xlim = c(quantile(wine_data$density, 0.01), 
+             quantile(wine_data$density, 0.99)), 
+    ylim = c(quantile(wine_data$alcohol, 0.01), 
+             quantile(wine_data$alcohol, 0.99))) + 
+  geom_jitter(alpha = 1/2, aes(size = class, color = class)) +
+  geom_vline(xintercept = mean(wine_data$density), 
+             linetype = 'longdash', 
+             color = 'blue', 
+             alpha = 0.5) +
+  geom_hline(yintercept = mean(wine_data$alcohol), 
+             linetype = 'longdash', 
+             color = 'blue', 
+             alpha = 0.5) +
+  xlab('Densidade (g/cm³)') +
+  ylab('Teor Alcoolico (%)') + 
   ggtitle('Dispersão entre densidade e teor alcoolico por qualidade dos vinhos') 
 ```
 
@@ -494,6 +556,3 @@ Como foi utilizado um modelo linear, esse pode ser um dos motivos da baixa expec
 Algumas limitações da análise são: a origem e data de coleta dos dados que parecem não ser atuais; o intervalo de classificação da qualidade dos vinhos é muito estreito, variando apenas de 3 a 9, geralmente as classificações de bebidas vão de 0 a 100; foram disponibilizadas apenas características numéricas dos vinhos, características categóricas, como por exemplo, cor, aroma e sabor, podem ser muito úteis para classificar a qualidade dos vinhos. 
 
 Outros datasets que superem algumas das limitações indicadas acima podem resultar numa melhor predição da qualidade. Um exemplo seria o VinhoVirtual (http://www.vinhovirtual.com.br/), um conjunto de dados com classificações atuais em uma escala de 0 a 100, características numéricas e também categóricas. Uma preocuação com esse dataset seria que, por ser uma base alimentada pelos usuários da comunidade, muitos dados estão ausentes e pode haver também dados discrepantes informados pelos usuários, então um tratamento mais detalhado dos dados é necessário.
-
-
-
